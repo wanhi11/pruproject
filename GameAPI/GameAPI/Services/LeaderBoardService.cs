@@ -3,6 +3,7 @@ using GameAPI.Dtos;
 using GameAPI.Entities;
 using GameAPI.Exceptions;
 using GameAPI.Repositories;
+using Microsoft.EntityFrameworkCore;
 
 namespace GameAPI.Services;
 
@@ -47,7 +48,7 @@ public class LeaderBoardService
             await _leaderBoardRepository.AddAsync(_mapper.Map<LeaderBoard>(new LeaderBoardModel()
             {
                 Time = time,
-                UserId = top!.Userid
+                UserId = player.Userid
             }));
             await _leaderBoardRepository.Commit();  
             
@@ -55,5 +56,16 @@ public class LeaderBoardService
         }
 
         return false;
+    }
+
+    public async Task<LeaderBoardModel> GetTopPlayer()
+    {
+        var topLeaderBoard = await _leaderBoardRepository.GetAll().OrderBy(x => x.Time).FirstOrDefaultAsync();
+        if (topLeaderBoard is null)
+        {
+            throw new BadRequestException("There is no one played before");
+        }
+
+        return _mapper.Map<LeaderBoardModel>(topLeaderBoard);
     }
 }

@@ -3,6 +3,7 @@ using GameAPI.Dtos;
 using GameAPI.Entities;
 using GameAPI.Exceptions;
 using GameAPI.Repositories;
+using Microsoft.EntityFrameworkCore;
 
 namespace GameAPI.Services;
 
@@ -46,5 +47,16 @@ public class UserService
             await _userRepository.Commit();
             return true;
         }
+    }
+
+    public async Task<UserModel> FindById(int id)
+    {
+        var user = await _userRepository.FindByCondition(x => x.Userid == id).FirstOrDefaultAsync();
+        if (user is null)
+        {
+            throw new BadRequestException("User does not exist");
+        }
+
+        return _mapper.Map<UserModel>(user);
     }
 }

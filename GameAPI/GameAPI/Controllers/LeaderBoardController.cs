@@ -5,6 +5,7 @@ using GameAPI.Common.Payloads.Responses;
 using GameAPI.Dtos;
 using GameAPI.Exceptions;
 using GameAPI.Services;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 
 namespace GameAPI.Controllers;
@@ -14,12 +15,14 @@ namespace GameAPI.Controllers;
 public class LeaderBoardController : Controller
 {
     private readonly LeaderBoardService _leaderBoardService;
+    private readonly UserService _userService;
     private readonly IMapper _mapper;
 
-    public LeaderBoardController(LeaderBoardService leaderBoardService, IMapper mapper)
+    public LeaderBoardController(LeaderBoardService leaderBoardService, UserService userService,IMapper mapper)
     {
         _leaderBoardService = leaderBoardService;
         _mapper = mapper;
+        _userService = userService;
     }
 
     [HttpGet]
@@ -48,6 +51,18 @@ public class LeaderBoardController : Controller
             {
                 Time = req.Time
             }
+        }));
+    }
+    
+    [HttpGet]
+    public async Task<IActionResult> GetTopPlayer()
+    {
+        var scoreResult = await _leaderBoardService.GetTopPlayer();
+        var playerInfor = await _userService.FindById(scoreResult.UserId);
+        return Ok(ApiResult<TopPLayerDetailsResponse>.Succeed(new TopPLayerDetailsResponse()
+        {
+            PlayerName = playerInfor.Username,
+            PlayerScore = scoreResult.Time.ToString()
         }));
     }
 }
